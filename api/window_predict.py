@@ -9,6 +9,13 @@ ADDITIONAL_TOKENS = ['<OTHER>', '<START>', '<END>', '<PAD>']
 # Each sequence is added <START> and <END> tokens
 ADDED_TOKENS_PER_SEQ = 2
 
+n_aas = len(ALL_AAS)
+aa_to_token_index = {aa: i for i, aa in enumerate(ALL_AAS)}
+additional_token_to_index = {token: i + n_aas for i, token in enumerate(ADDITIONAL_TOKENS)}
+token_to_index = {**aa_to_token_index, **additional_token_to_index}
+index_to_token = {index: token for token, index in token_to_index.items()}
+n_tokens = len(token_to_index)
+
 
 
 def tokenize_seq(seq):
@@ -28,12 +35,6 @@ def tokenize_seqs(seqs, seq_len):
     return np.array([seq_tokens + (seq_len - len(seq_tokens)) * [additional_token_to_index['<PAD>']] for seq_tokens in map(tokenize_seq, seqs)], dtype = np.int32)
 
 def predict_window(seq):
-    n_aas = len(ALL_AAS)
-    aa_to_token_index = {aa: i for i, aa in enumerate(ALL_AAS)}
-    additional_token_to_index = {token: i + n_aas for i, token in enumerate(ADDITIONAL_TOKENS)}
-    token_to_index = {**aa_to_token_index, **additional_token_to_index}
-    index_to_token = {index: token for token, index in token_to_index.items()}
-    n_tokens = len(token_to_index)
     model = tf.keras.models.load_model('./models/ProteinBERT')
 
     seq_cutoff = 39
