@@ -2,6 +2,7 @@ import numpy as np
 import pickle
 import os
 import tensorflow as tf
+from api import model
 
 ALL_AAS = 'ACDEFGHIKLMNPQRSTUVWXY'
 ADDITIONAL_TOKENS = ['<OTHER>', '<START>', '<END>', '<PAD>']
