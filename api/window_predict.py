@@ -1,7 +1,7 @@
-import tensorflow as tf
 import numpy as np
 import pickle
 import os
+import tensorflow as tf
 
 ALL_AAS = 'ACDEFGHIKLMNPQRSTUVWXY'
 ADDITIONAL_TOKENS = ['<OTHER>', '<START>', '<END>', '<PAD>']
@@ -35,11 +35,9 @@ def tokenize_seqs(seqs, seq_len):
     return np.array([seq_tokens + (seq_len - len(seq_tokens)) * [additional_token_to_index['<PAD>']] for seq_tokens in map(tokenize_seq, seqs)], dtype = np.int32)
 
 def predict_window(seq):
-    model = tf.keras.models.load_model('./models/ProteinBERT')
+    global model
 
     seq_cutoff = 39
-
-
 
     current_label = 0
 

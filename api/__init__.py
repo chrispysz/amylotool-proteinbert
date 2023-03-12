@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
+import tensorflow as tf
 
 def create_app():
     app = Flask(__name__)
@@ -10,5 +11,7 @@ def create_app():
     from .predictionsAPI import predictionsAPI
 
     app.register_blueprint(predictionsAPI, url_prefix='/predict')
+
+    model = tf.keras.models.load_model('./models/ProteinBERT')
     
     return app
