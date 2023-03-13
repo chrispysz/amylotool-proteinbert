@@ -1,8 +1,13 @@
+from flask import Flask, request, jsonify
+import uuid
+
+from flask_cors import CORS
+
 import numpy as np
 import pickle
 import os
 import tensorflow as tf
-from api import model
+
 
 ALL_AAS = 'ACDEFGHIKLMNPQRSTUVWXY'
 ADDITIONAL_TOKENS = ['<OTHER>', '<START>', '<END>', '<PAD>']
@@ -16,6 +21,14 @@ additional_token_to_index = {token: i + n_aas for i, token in enumerate(ADDITION
 token_to_index = {**aa_to_token_index, **additional_token_to_index}
 index_to_token = {index: token for token, index in token_to_index.items()}
 n_tokens = len(token_to_index)
+
+
+app = Flask(__name__)
+CORS(app)
+app.config['SECRET_KEY'] = 'KHRl4KwU6KkD3AdMaG2jkANKvJLxPAQ8'
+app.config['TIMEOUT'] = None
+
+model = tf.keras.models.load_model('./models/ProteinBERT')
 
 
 
@@ -67,3 +80,19 @@ def predict_window(seq):
 
     return (seq_dicts)
 
+@app.route('/predict/full', methods=['POST'])
+def predictFull():
+
+    try:
+        sequence = request.json['sequence']
+        if (sequence == "ping"):
+            return jsonify(results = "Service reached")
+        result = predict_window(sequence)
+        return jsonify(
+            results=result
+        )
+    except Exception as e:
+        return f"An Error Occurred: {e}"
+
+if __name__ == '__main__':
+    app.run(debug = True)
