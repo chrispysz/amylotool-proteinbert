@@ -7,6 +7,7 @@ import numpy as np
 import pickle
 import os
 import tensorflow as tf
+import time
 
 
 ALL_AAS = 'ACDEFGHIKLMNPQRSTUVWXY'
@@ -67,13 +68,16 @@ def predict_window(seq):
         splits = len(seq)-seq_cutoff
         for i in range(splits):
             subseq = seq[i:seq_cutoff+i+1]
-            pred = model.predict([tokenize_seqs([subseq], 512),
+            start_time = time.time()
+            tok_seqs = tokenize_seqs([subseq], 512)
+            pred = model.predict([tok_seqs,
                 np.zeros((1, 8943), dtype = np.int8)])
+            print("Time to predict: ", time.time() - start_time)
 
             seq_dict = {
                 "startIndex": i,
                 "endIndex": seq_cutoff+i,
-                "prediction": str(pred[0])
+                "prediction": str(pred[0][0])
             }
             seq_dicts.append(seq_dict)
 
