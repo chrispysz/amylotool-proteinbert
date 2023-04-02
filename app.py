@@ -13,7 +13,6 @@ import time
 ALL_AAS = 'ACDEFGHIKLMNPQRSTUVWXY'
 ADDITIONAL_TOKENS = ['<OTHER>', '<START>', '<END>', '<PAD>']
 
-# Each sequence is added <START> and <END> tokens
 ADDED_TOKENS_PER_SEQ = 2
 
 n_aas = len(ALL_AAS)
@@ -46,43 +45,16 @@ def parse_seq(seq):
     else:
         raise TypeError('Unexpected sequence type: %s' % type(seq))
 def tokenize_seqs(seqs, seq_len):
-    # Note that tokenize_seq already adds <START> and <END> tokens.
     return np.array([seq_tokens + (seq_len - len(seq_tokens)) * [additional_token_to_index['<PAD>']] for seq_tokens in map(tokenize_seq, seqs)], dtype = np.int32)
 
-def predict_window(seq):
+def predict_window(seq, seq_cutoff = 39):
     global model
 
-    seq_cutoff = 39
-
-    current_label = 0
-
-    sequences = []
-    spec_preds = []
-    seq_dicts = []
-
-    seq_proper = ''
-    for aa in seq:
-        seq_proper += aa+' '
-
-    if len(seq) > seq_cutoff:
-        splits = len(seq)-seq_cutoff
-        for i in range(splits):
-            subseq = seq[i:seq_cutoff+i+1]
-            start_time = time.time()
-            tok_seqs = tokenize_seqs([subseq], 512)
-            pred = model.predict([tok_seqs,
-                np.zeros((1, 8943), dtype = np.int8)])
-            print("Time to predict: ", time.time() - start_time)
-
-            seq_dict = {
-                "startIndex": i,
-                "endIndex": seq_cutoff+i,
-                "prediction": str(pred[0][0])
-            }
-            seq_dicts.append(seq_dict)
-
-
-    return (seq_dicts)
+    seqqs = [seq[i:seq_cutoff+i+1] for i in range(len(seq)-seq_cutoff+1)]
+    preds = model.predict([tokenize_seqs(seqqs, 512), np.zeros((len(seqqs), 8943), dtype=np.int8)])
+    seq_dicts = [{"startIndex": i, "endIndex": seq_cutoff+i, "prediction": f"{pred}"}
+                 for i, pred in enumerate(preds)]
+    return seq_dicts
 
 @app.route('/predict/full', methods=['POST'])
 def predictFull():
