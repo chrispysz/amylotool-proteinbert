@@ -52,7 +52,7 @@ def predict_window(seq, seq_cutoff = 39):
     global model
 
     start = time.time()
-    logging.info("Splitting sequence into %d windows of length %d" % (splits, seq_cutoff+1))
+
     seqqs = [seq[i:seq_cutoff+i+1] for i in range(len(seq)-seq_cutoff)]
     preds = model.predict([tokenize_seqs(seqqs, 512), np.zeros((len(seqqs), 8943), dtype=np.int8)])
     seq_dicts = [{"startIndex": i, "endIndex": seq_cutoff+i, "prediction": f"{pred[0]}"}
